@@ -2,8 +2,8 @@ package opencode
 
 import (
 	"strings"
+	"time"
 
-	"github.com/google/uuid"
 	"github.com/maximhq/bifrost/core/schemas"
 )
 
@@ -89,7 +89,7 @@ func resolveOpencodeSessionValue(ctx *schemas.BifrostContext) string {
 	// c) No signal at all: synthesize a fresh per-request UUID so the request
 	// stays compliant. No affinity — the caller must send its own session
 	// identity for multi-turn tracking.
-	return namespaceOpencodeSession(ctx, uuid.New().String())
+	return namespaceOpencodeSession(ctx, time.Now().UTC().Format("20060102"))
 }
 
 // namespaceOpencodeSession qualifies a resolved session value with the ID of the

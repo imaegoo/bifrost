@@ -462,9 +462,10 @@ export default function AppSidebar() {
 	const accessibleItems: NavItem[] = useMemo(() => {
 		return items
 			.map((item) => {
+				if (item.enterpriseOnly && !IS_ENTERPRISE) return null;
 				const hadSubItems = !!item.subItems?.length;
 				if (hadSubItems) {
-					const visibleSubItems = item.subItems!.filter((sub) => sub.hasAccess !== false);
+					const visibleSubItems = item.subItems!.filter((sub) => sub.hasAccess !== false && (!sub.enterpriseOnly || IS_ENTERPRISE));
 					if (visibleSubItems.length === 0) return null;
 					return { ...item, subItems: visibleSubItems, hasAccess: true };
 				}
@@ -499,7 +500,7 @@ export default function AppSidebar() {
 	const showNewReleaseBanner = useMemo(() => {
 		if (IS_ENTERPRISE) return false;
 		if (latestRelease && version) {
-			return compareVersions(latestRelease.name, version) > 0;
+			return compareVersions(latestRelease.name, version.replace(/-[0-9a-f]{12}$/, "")) > 0;
 		}
 		return false;
 	}, [latestRelease, version]);

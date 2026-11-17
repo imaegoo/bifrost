@@ -11,6 +11,7 @@ import (
 	"github.com/maximhq/bifrost/core/providers/openai"
 	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
 	schemas "github.com/maximhq/bifrost/core/schemas"
+	"github.com/tiktoken-go/tokenizer"
 	"github.com/valyala/fasthttp"
 )
 
@@ -423,8 +424,29 @@ func (p *opencodeProvider) FileContent(_ *schemas.BifrostContext, _ []schemas.Ke
 }
 
 // CountTokens is not supported by Opencode.
-func (p *opencodeProvider) CountTokens(_ *schemas.BifrostContext, _ schemas.Key, _ *schemas.BifrostResponsesRequest) (*schemas.BifrostCountTokensResponse, *schemas.BifrostError) {
-	return nil, providerUtils.NewUnsupportedOperationError(schemas.CountTokensRequest, p.GetProviderKey())
+func (p *opencodeProvider) CountTokens(_ *schemas.BifrostContext, _ schemas.Key, request *schemas.BifrostResponsesRequest) (*schemas.BifrostCountTokensResponse, *schemas.BifrostError) {
+	if request == nil {
+		return nil, providerUtils.NewUnsupportedOperationError(schemas.CountTokensRequest, p.GetProviderKey())
+	}
+	body, err := providerUtils.MarshalSorted(request.Input)
+	if err != nil {
+		return nil, providerUtils.NewBifrostOperationError("failed to marshal count tokens input", err)
+	}
+	codec, err := tokenizer.Get(tokenizer.O200kBase)
+	if err != nil {
+		return nil, providerUtils.NewBifrostOperationError("tokenizer unavailable", err)
+	}
+	count, err := codec.Count(string(body))
+	if err != nil {
+		return nil, providerUtils.NewBifrostOperationError("failed to count tokens", err)
+	}
+	totalTokens := count
+	return &schemas.BifrostCountTokensResponse{
+		Model:       request.Model,
+		InputTokens: count,
+		TotalTokens: &totalTokens,
+		Object:      "response.input_tokens",
+	}, nil
 }
 
 // ModelRetrieve is not supported by Opencode.

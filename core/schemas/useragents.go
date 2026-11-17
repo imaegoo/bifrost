@@ -98,6 +98,7 @@ var HarnessSessionHeaders = []string{
 	"session_id",               // Codex CLI, builds predating the dashed rename
 	"thread-id",                // Codex CLI thread: coarser, only when no session header is sent
 	"conversation_id",          // Codex CLI, builds predating the dashed rename
+	"x-conversation-id",
 }
 
 // UserAgentAppMatcher maps a detected application label to User-Agent identifiers.
